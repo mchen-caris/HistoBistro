@@ -17,9 +17,9 @@ from classifier import ClassifierLightning
 from options import Options
 
 
-# %% md
-### Load plotting utils
-# %%
+# ----------------------------------------------
+# Load plotting utils
+# ----------------------------------------------
 
 # function that plots scores nicely. scores should have the same length as the number of tiles.
 def NormalizeData(data):
@@ -86,9 +86,9 @@ def plot_scores(coords, scores, image, overlay=True, clamp=0.05, norm=True, colo
     plt.axis('off')
 
 
-# %% md
-### Load attention utils
-# %%
+# ----------------------------------------------
+# Load attention utils
+# ----------------------------------------------
 def compute_rollout_attention(all_layer_matrices, start_layer=0):
     # adding residual consideration- code adapted from https://github.com/samiraabnar/attention_flow
     num_tokens = all_layer_matrices[0].shape[1]
@@ -116,132 +116,94 @@ def generate_rollout(model, input, start_layer=0):
     return rollout[:, 0, 1:]
 
 
-# %% md
-### Load model weights
-# %%
+# ----------------------------------------------
+# Load model weights
+# ----------------------------------------------
 parser = Options()
 args = parser.parser.parse_args('')
 
-# --------------------------------------------
 # TODO: add custom data
-# args.config_file = '/gpfs1/home/mchen/projects/HistoBistro/aws_HistoBistro_eamidi/CRC_all/2023-10-30--12-49-36/yaml_files/aws_config_MSI--MSI.yaml'  # heads: 2
-args.config_file = '/gpfs1/home/mchen/projects/HistoBistro/aws_HistoBistro_eamidi/CRC_all/2023-11-02--15-09-54--12epochs/yaml_files/aws_config_MSI--MSI.yaml'  # heads: 8
-# --------------------------------------------
+args.config_file = '/gpfs1/home/mchen/projects/HistoBistro/experiments/20231102_philips_raw/yaml_files/aws_config_MSI--MSI.yaml'  # heads: 8
 
 # Load the configuration from the YAML file
 with open(args.config_file, 'r') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
-
-# # Update the configuration with the values from the argument parser
-# for arg_name, arg_value in vars(args).items():
-#     if arg_value is not None and arg_name != 'config_file':
-#         config[arg_name]['value'] = getattr(args, arg_name)
-
-# Create a flat config file without descriptions
-config = {k: v['value'] for k, v in config.items()}
 
 print('\n--- load options ---')
 for name, value in sorted(config.items()):
     print(f'{name}: {str(value)}')
 
 cfg = argparse.Namespace(**config)
-# %%
-name = 'multi-all-cohorts-every1000'
-target = 'isMSIH'
-fold = 2
-# # BRAF experiments
-# name = 'multi-all-cohorts'
-# target = 'BRAF'
-# fold = 3
-# # KRAS experiments
-# name = 'multi-all-cohorts'
-# target = 'KRAS'
-# fold = 2
-# model_path = Path(f'/Users/sophia.wagner/Documents/PhD/projects/2022_MSI_transformer/attention-user-study/multi-all-cohorts-every1000_transformer_DACHS-QUASAR-RAINBOW-TCGA_histaugan_isMSIH/models/best_model_multi-all-same_transformer_DACHS-QUASAR-RAINBOW-TCGA_histaugan_isMSIH_fold3.ckpt')
-# model_path = Path(f'/Volumes/SSD/logs/idkidc/multi-all-cohorts-every1000_transformer_CPTAC-DACHS-DUSSEL-Epi700-ERLANGEN-FOXTROT-MCO-MECC-MUNICH-QUASAR-RAINBOW-TCGA-TRANSCOT_histaugan_isMSIH/models/best_model_{name}_transformer_CPTAC-DACHS-DUSSEL-Epi700-ERLANGEN-FOXTROT-MCO-MECC-MUNICH-QUASAR-RAINBOW-TCGA-TRANSCOT_histaugan_isMSIH_fold{fold}.ckpt/')
-# model_path = Path(f'/Volumes/SSD/logs/idkidc/multi-all-cohorts_transformer_DACHS-QUASAR-RAINBOW-TCGA-MCO_histaugan_BRAF/models/best_model_{name}_transformer_DACHS-QUASAR-RAINBOW-TCGA-MCO_histaugan_BRAF_fold{fold}.ckpt/')
-# model_path = Path(
-#     f'/Volumes/SSD/logs/idkidc/multi-all-cohorts_transformer_DACHS-QUASAR-RAINBOW-TCGA-MCO_histaugan_{target}/models/best_model_{name}_transformer_DACHS-QUASAR-RAINBOW-TCGA-MCO_histaugan_{target}_fold{fold}.ckpt/')
+
 model_path = Path(
-    '/gpfs1/home/mchen/projects/HistoBistro/aws_HistoBistro_eamidi/CRC_all/2023-11-02--15-09-54--12epochs/output/logs/local-Transformer-CRC_all-MSI--MSI-lr1e-05-wd1e-05_Transformer_caris_raw_MSI--MSI/models/best_model_local-Transformer-CRC_all-MSI--MSI-lr1e-05-wd1e-05_Transformer_caris_raw_MSI--MSI_fold0.ckpt')
-# cfg.pos_weight = torch.tensor([1.0])
-cfg.pos_weight = torch.tensor([])
+    '/gpfs1/home/mchen/projects/HistoBistro/experiments/20231102_philips_raw/output/logs/20231103_philips_raw_Transformer_caris_raw_MSI--MSI/models/best_model_20231103_philips_raw_Transformer_caris_raw_MSI--MSI_fold0.ckpt')
+cfg.pos_weight = torch.tensor(1.0)
 classifier = ClassifierLightning(cfg)
 checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
 checkpoint['state_dict'].keys()
 classifier.load_state_dict(checkpoint['state_dict'])
-classifier.eval();
-# %% md
-### Load features and slides
-# %%
-# slide_csv = Path('/Users/sophia.wagner/Documents/PhD/data/YCR-BCIP/YORKSHIRE-RESECTIONS-DX_SLIDE.csv')
-# slide_csv = Path('/Users/sophia.wagner/Documents/PhD/data/Epi700/BELFAST-CRC-DX_SLIDE.csv')
-slide_csv = Path('/gpfs1/home/mchen/projects/HistoBistro/aws_HistoBistro_eamidi/CRC_all/slide_table_MSI--MSI.csv')
-slide_csv = pd.read_csv(slide_csv)
-# %%
-# patient_id = Path('18-LSS0736') 439097.h5
-# base_dir = Path('/Users/sophia.wagner/Documents/PhD/data/YCR-BCIP/attention_study')
-# slide_dir = base_dir / 'slides'
-# base_dir = Path('/Users/sophia.wagner/Documents/PhD/data/YCR-BCIP')
-# slide_dir = base_dir / 'attention_visualization'
-base_dir = Path('/Users/sophia.wagner/Documents/PhD/data/Epi700')
-slide_dir = base_dir
-slides = list(slide_dir.glob('*.svs'))
-slides.sort()
+classifier.eval()
 
-# %%
-# slides.index(slide_dir / '439097.svs')
-# %%
-slide_idx = 1
-slide_path = slides[slide_idx]
-# feature_dir = base_dir  # / 'attention_visualization' #  / 'features'
+# ----------------------------------------------
+# Load features and slides
+# ----------------------------------------------
+slide_csv = Path('/gpfs1/home/mchen/projects/HistoBistro/data/CRC_MSI_MIL/resection/slide_table-MSI--MSI.csv')
+slide_csv = pd.read_csv(slide_csv)
+
+# base_dir = Path('/Users/sophia.wagner/Documents/PhD/data/Epi700')
+# slide_dir = base_dir
+# slides = list(slide_dir.glob('*.svs'))
+# slides.sort()
+
+image_id = '5c347ac8-85c4-429d-b4b7-bf57fc792b85'
+slide_path = Path(f'/gpfs1/home/mchen/projects/HistoBistro/data/CRC_MSI_MIL/WSI/{image_id}.tiff')
 feature_dir = Path('/gpfs1/home/mchen/projects/HistoBistro/aws_HistoBistro_eamidi/CRC_all/fests_ctrans')
-# feature_path = feature_dir / f'{slide_path.stem}.h5'
-feature_path = feature_dir / f'00369d04-d0f4-4762-a3f6-c02997ede9d7.h5'
+feature_path = feature_dir / f'{image_id}.h5'
 print(slide_path.name)
-print(slides)
-# %%
+
 h5_file = h5py.File(feature_path)
 features = torch.Tensor(np.array(h5_file['feats'])).unsqueeze(0)
 coords = torch.Tensor(np.array(h5_file['coords']))
 coords = [(coords[i, 0].int().item(), coords[i, 1].int().item()) for i in range(coords.shape[0])]
-# %%
+
 slide = openslide.OpenSlide(slide_path)
-level = len(slide.level_downsamples) - 1
+level = len(slide.level_downsamples) - 3
 d = slide.level_downsamples[level]
 image = slide.read_region((0, 0), level, slide.level_dimensions[level])
-# %%
+
 image = np.array(image.convert("RGB"))
-# %%
 plt.figure(figsize=(10, 10))
 plt.imshow(image)
 plt.axis('off')
-# %% md
-### Compute attention scores
-# %%
-rollout = generate_rollout(classifier.model, features, start_layer=0).squeeze(0)
-# %%
-plot_scores(coords, rollout, image, overlay=True, colormap='viridis', crop=True)
 plt.show()
-# %% md
-### Compute class scores
-# %%
+
+# ----------------------------------------------
+# Compute scores
+# ----------------------------------------------
+# TODO: Compute attention scores
+rollout = generate_rollout(classifier.model, features, start_layer=0).squeeze(0)
+plot_scores(coords, rollout, image, overlay=True, colormap='viridis', crop=True)
+plt.title('Attention Scores')
+plt.show()
+
+# TODO: Compute class scores
 n = features.shape[1]
 scores = np.zeros(n)
 for i in tqdm(range(n)):
     out = classifier.model(features[:, i:i + 1, :]).squeeze(0)
     scores[i] = torch.sigmoid(out)
-# %%
 plot_scores(coords, scores, image, overlay=True, colormap='RdBu_r', clamp=False, norm=False, crop=True)
+plt.title('Class Scores')
 plt.show()
-# %% md
-### attention x class scores
-# %%
-plot_scores(coords, rollout * scores, image, overlay=True, colormap='RdBu_r', clamp=False, norm=True)
+
+# TODO: attention x class scores
+plot_scores(coords, rollout * scores, image, overlay=True, colormap='RdBu_r', clamp=False, norm=True, crop=True)
+plt.title('Attention x Class Scores')
 plt.show()
-# %% md
-## User study on high attention tiles
-# %% md
+
+# ----------------------------------------------
+# User study on high attention tiles
+# ----------------------------------------------
 ### prepare user study
 # %%
 k = 100
