@@ -1,0 +1,82 @@
+# logging options
+save_dir: /gpfs1/home/mchen/projects/HistoBistro/experiments/20231102_resection_raw/output/logs
+project: TransformerBased
+name: debug
+
+# task definition
+data_config: /gpfs1/home/mchen/projects/HistoBistro/experiments/20231102_resection_raw/yaml_files/aws_data_config_MSI--MSI.yaml
+task: binary
+target: MSI--MSI
+num_classes: 1
+cohorts: [ "caris" ]
+ext_cohorts: [ "caris" ]
+clini_info: { }
+seed: 123
+label_dict:
+  High: 1
+  Stable: 0
+
+# model options
+model: Transformer
+model_config:
+  dim: 512
+  dim_head: 64
+  heads: 8
+  mlp_dim: 512
+norm: raw
+feats: ctranspath
+input_dim: 768
+num_tiles: -1
+pad_tiles: false
+
+# training options
+folds: 5
+num_epochs: 12
+criterion: BCEWithLogitsLoss
+optimizer: AdamW
+lr_scheduler: null
+lr_scheduler_config: null
+lr: 1.0e-05
+wd: 1.0e-05
+bs: 1
+stop_criterion: loss
+val_check_interval: 500
+num_samples: null
+
+#bs: 1
+#clini_info: {}
+#cohorts: [caris]
+#criterion: BCEWithLogitsLoss
+#data_config: /gpfs1/home/mchen/projects/HistoBistro/experiments/20231102_resection_raw/yaml_files/aws_data_config_MSI--MSI.yaml
+#ext_cohorts: [caris]
+#feats: ctranspath
+#folds: 5
+#input_dim: 768
+#label_dict:
+#  High: 1
+#  Stable: 0
+#lr: 1.0e-05
+#lr_scheduler: null
+#lr_scheduler_config: null
+#model: Transformer
+#model_config:
+#  dim: 512
+#  dim_head: 64
+#  heads: 8
+#  mlp_dim: 512
+#name: debug
+#norm: raw
+#num_classes: 1
+#num_epochs: 12
+#num_samples: null
+#num_tiles: -1
+#optimizer: AdamW
+#pad_tiles: false
+#project: TransformerBased
+#save_dir: /gpfs1/home/mchen/projects/HistoBistro/experiments/20231102_resection_raw/output/logs
+#seed: 123
+#stop_criterion: loss
+#target: MSI--MSI
+#task: binary
+#val_check_interval: 500
+#wd: 1.0e-05

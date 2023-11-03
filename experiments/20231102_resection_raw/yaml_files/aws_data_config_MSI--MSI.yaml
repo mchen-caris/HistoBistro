@@ -1,0 +1,7 @@
+caris:
+  clini_table: /gpfs1/home/mchen/projects/HistoBistro/data/CRC_MSI_MIL/resection/clinical_table-MSI--MSI.csv
+  feature_dir:
+    raw:
+      ctranspath: /gpfs1/home/eamidi/JPN/aws_HistoBistro/CRC_all/fests_ctrans
+  folds: /gpfs1/home/mchen/projects/HistoBistro/experiments/20231102_resection_raw/output/folds
+  slide_csv: /gpfs1/home/mchen/projects/HistoBistro/data/CRC_MSI_MIL/resection/slide_table-MSI--MSI.csv

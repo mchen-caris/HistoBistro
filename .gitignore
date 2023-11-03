@@ -1,0 +1,22 @@
+aws_HistoBistro_eamidi
+
+dev.py
+output
+code.tar.gz
+
+data
+.idea
+.DS_STORE
+
+.vscode
+*__pycache__
+
+# directories
+cache/
+dataset/
+exp_output/
+
+# checkpoint paths
+*.npz
+*.png
+*.log
