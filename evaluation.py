@@ -155,7 +155,12 @@ slide_csv = pd.read_csv(slide_csv)
 # slides = list(slide_dir.glob('*.svs'))
 # slides.sort()
 
-image_id = '5c347ac8-85c4-429d-b4b7-bf57fc792b85'
+base_dir = Path('/gpfs1/home/mchen/projects/HistoBistro/data/CRC_MSI_MIL/plots')
+base_dir.mkdir(parents=True, exist_ok=True)
+# image_id = 'c09924d0-9192-4983-938a-bbb405e2e5c5'  # MSI-stable
+# image_id = '00369d04-d0f4-4762-a3f6-c02997ede9d7'  # MSI-stable
+# image_id = 'bd2c2331-37c5-48b0-8b8d-111045e9fab6'  # MSI-stable
+image_id = '5c347ac8-85c4-429d-b4b7-bf57fc792b85'  # MSI-high
 slide_path = Path(f'/gpfs1/home/mchen/projects/HistoBistro/data/CRC_MSI_MIL/WSI/{image_id}.tiff')
 feature_dir = Path('/gpfs1/home/mchen/projects/HistoBistro/aws_HistoBistro_eamidi/CRC_all/fests_ctrans')
 feature_path = feature_dir / f'{image_id}.h5'
@@ -175,6 +180,7 @@ image = np.array(image.convert("RGB"))
 plt.figure(figsize=(10, 10))
 plt.imshow(image)
 plt.axis('off')
+plt.savefig(base_dir / f'{slide_path.stem}_wsi.png', dpi=300)
 plt.show()
 
 # ----------------------------------------------
@@ -183,7 +189,8 @@ plt.show()
 # TODO: Compute attention scores
 rollout = generate_rollout(classifier.model, features, start_layer=0).squeeze(0)
 plot_scores(coords, rollout, image, overlay=True, colormap='viridis', crop=True)
-plt.title('Attention Scores')
+# plt.title('Attention Scores')
+plt.savefig(base_dir / f'{slide_path.stem}_attention_scores.png', dpi=300)
 plt.show()
 
 # TODO: Compute class scores
@@ -193,12 +200,14 @@ for i in tqdm(range(n)):
     out = classifier.model(features[:, i:i + 1, :]).squeeze(0)
     scores[i] = torch.sigmoid(out)
 plot_scores(coords, scores, image, overlay=True, colormap='RdBu_r', clamp=False, norm=False, crop=True)
-plt.title('Class Scores')
+# plt.title('Class Scores')
+plt.savefig(base_dir / f'{slide_path.stem}_classification_scores.png', dpi=300)
 plt.show()
 
 # TODO: attention x class scores
 plot_scores(coords, rollout * scores, image, overlay=True, colormap='RdBu_r', clamp=False, norm=True, crop=True)
-plt.title('Attention x Class Scores')
+# plt.title('Attention x Class Scores')
+plt.savefig(base_dir / f'{slide_path.stem}_attention_x_classification_scores.png', dpi=300)
 plt.show()
 
 # ----------------------------------------------
@@ -225,6 +234,7 @@ for i in tqdm(range(n)):
     scores[i] = torch.sigmoid(out)
 # %%
 plot_scores(coords, scores, image, norm=False, clamp=0., colormap='viridis', overlay=False)
+plt.show()
 # %%
 torch.tensor(scores).topk(10, largest=False)
 # %%
@@ -260,6 +270,7 @@ for i in range(len(ind)):
 
     plt.axis('off')
 plt.tight_layout()
+plt.show()
 # plt.savefig(base_dir / f'{slide_path.stem}_top{k:03}_all.png', dpi=300)
 # %%
 # plot every lth tile from top k tiles
@@ -287,7 +298,8 @@ for i in range(len(ind)):
 
     plt.axis('off')
 plt.tight_layout()
-plt.savefig(base_dir / 'tiles' / f'{slide_path.stem}_top{k:03}_every{l:02}.png', dpi=300)
+plt.show()
+# plt.savefig(base_dir / 'tiles' / f'{slide_path.stem}_top{k:03}_every{l:02}.png', dpi=300)
 # %%
 # plot top and bottom scored tiles from top k tiles
 l = 2
